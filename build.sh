@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t php-fpm:8.0rc2 .
+docker build -t php-fpm:latest .
