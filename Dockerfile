@@ -18,15 +18,12 @@ ENV PHPIZE_DEPS \
 		pkg-config \
 		re2c
 
-RUN set -eux; \
-	apt-get update; \
-	apt-get install -y --no-install-recommends \
-		$PHPIZE_DEPS \
-		ca-certificates \
-		curl \
-		xz-utils \
-	; \
-	rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+	  $PHPIZE_DEPS \
+	  ca-certificates \
+	  curl \
+	  xz-utils \
+	  --no-install-recommends && rm -r /var/lib/apt/lists/*
 
 ENV PHP_INI_DIR /usr/local/etc/php
 RUN set -eux; \
@@ -76,7 +73,6 @@ RUN set -eux; \
 	cd /usr/src/php; \
 	gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
 	debMultiarch="$(dpkg-architecture --query DEB_BUILD_MULTIARCH)"; \
-# https://bugs.php.net/bug.php?id=74125
 	if [ ! -d /usr/include/curl ]; then \
 		ln -sT "/usr/include/$debMultiarch/curl" /usr/local/include/curl; \
 	fi; \
@@ -171,7 +167,8 @@ RUN set -eux; \
 		echo 'listen = 8000'; \
 	} | tee php-fpm.d/zz-docker.conf
 
-RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*.bin \
+		&& apt-get clean
 
 STOPSIGNAL SIGQUIT
 
