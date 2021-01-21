@@ -37,8 +37,8 @@ ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
-ENV PHP_VERSION 8.0.0
-ENV PHP_URL="https://www.php.net/distributions/php-8.0.0.tar.xz"
+ENV PHP_VERSION 8.0.1
+ENV PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.xz"
 
 RUN mkdir -p /usr/src; \
 	cd /usr/src; \
@@ -48,7 +48,6 @@ COPY docker-php-source /usr/local/bin/
 
 RUN set -eux; \
 	\
-	savedAptMark="$(apt-mark showmanual)"; \
 	apt-get update; \
 	apt-get install -y --no-install-recommends \
 		libargon2-dev \
@@ -105,34 +104,18 @@ RUN set -eux; \
 	cp -v php.ini-* "$PHP_INI_DIR/"; \
 	\
 	cd /; \
-	docker-php-source delete; \
-	\
-# reset apt-mark's "manual" list so that "purge --auto-remove" will remove all build dependencies
-	apt-mark auto '.*' > /dev/null; \
-	[ -z "$savedAptMark" ] || apt-mark manual $savedAptMark; \
-	find /usr/local -type f -executable -exec ldd '{}' ';' \
-		| awk '/=>/ { print $(NF-1) }' \
-		| sort -u \
-		| xargs -r dpkg-query --search \
-		| cut -d: -f1 \
-		| sort -u \
-		| xargs -r apt-mark manual \
-	; \
-	apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false
+	docker-php-source delete
 
 COPY docker-php-ext-* docker-php-entrypoint /usr/local/bin/
 
-# sodium was built as a shared module (so that it can be replaced later if so desired), so let's enable it too (https://github.com/docker-library/php/issues/598)
 RUN docker-php-ext-enable sodium
 
 RUN set -eux; \
 	cd /usr/local/etc; \
 	if [ -d php-fpm.d ]; then \
-		# for some reason, upstream's php-fpm.conf.default has "include=NONE/etc/php-fpm.d/*.conf"
 		sed 's!=NONE/!=!g' php-fpm.conf.default | tee php-fpm.conf > /dev/null; \
 		cp php-fpm.d/www.conf.default php-fpm.d/www.conf; \
 	else \
-		# PHP 5.x doesn't use "include=" by default, so we'll create our own simple config that mimics PHP 7+ for consistency
 		mkdir php-fpm.d; \
 		cp php-fpm.conf.default php-fpm.d/www.conf; \
 		{ \
@@ -166,27 +149,17 @@ RUN set -eux; \
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*.bin \
 		&& apt-get clean
 
-FROM debian:sid-slim
+FROM microdeb/sid
 
 RUN set -eux; \
-	mkdir -p /var/www/html; \
-	chown www-data:www-data /var/www/html; \
-	chmod 777 /var/www/html
+	mkdir -p /var/www; \
+	chown www-data:www-data /var/www
 
-COPY --from=builder /usr/local/etc /usr/local/etc
-COPY --from=builder /usr/local/sbin/ /usr/local/sbin/
-COPY --from=builder /usr/local/bin/ /usr/local/bin/
-COPY --from=builder /usr/local/lib/ /usr/local/lib/
-COPY --from=builder /usr/local/include/ /usr/local/include/
-COPY --from=builder /usr/local/php/ /usr/local/php/
-
-RUN apt-get update \
-	&& apt-get install -y --no-install-recommends libargon2-1 libxml2 libsqlite3-0 libcurl4 libonig5 libedit2 libsodium23 \
-	&& rm -rf /var/lib/apt/lists/* /var/cache/apt/*.bin && apt-get clean
+COPY --from=builder /usr/local /usr/local
 
 ENTRYPOINT ["docker-php-entrypoint"]
 
-WORKDIR /var/www/html
+WORKDIR /var/www
 
 STOPSIGNAL SIGQUIT
 
