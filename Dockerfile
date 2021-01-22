@@ -126,7 +126,7 @@ RUN set -eux; \
 	{ \
 		echo '[global]'; \
 		echo 'error_log = /proc/self/fd/2'; \
-		echo; echo '; https://github.com/docker-library/php/pull/725#issuecomment-443540114'; echo 'log_limit = 8192'; \
+		echo 'log_limit = 8192'; \
 		echo; \
 		echo '[www]'; \
 		echo '; if we send this to /proc/self/fd/1, it never appears'; \
@@ -143,7 +143,7 @@ RUN set -eux; \
 		echo 'daemonize = no'; \
 		echo; \
 		echo '[www]'; \
-		echo 'listen = 8000'; \
+		echo 'listen = 9000'; \
 	} | tee php-fpm.d/zz-docker.conf
 
 RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*.bin \
@@ -157,11 +157,15 @@ RUN set -eux; \
 
 COPY --from=builder /usr/local /usr/local
 
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends libargon2-1 libxml2 libsqlite3-0 libcurl4 libonig5 libedit2 libsodium23 \
+	&& rm -rf /var/lib/apt/lists/* /var/cache/apt/*.bin && apt-get clean
+
 ENTRYPOINT ["docker-php-entrypoint"]
 
 WORKDIR /var/www
 
 STOPSIGNAL SIGQUIT
 
-EXPOSE 8000
+EXPOSE 9000
 CMD ["php-fpm"]
