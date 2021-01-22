@@ -59,6 +59,10 @@ RUN set -eux; \
 		libssl-dev \
 		libxml2-dev \
 		zlib1g-dev \
+		libzip-dev \
+		libfreetype6-dev \
+		libjpeg62-turbo-dev \
+		libpng-dev \
 		${PHP_EXTRA_BUILD_DEPS:-} \
 	; \
 	rm -rf /var/lib/apt/lists/*; \
@@ -92,11 +96,17 @@ RUN set -eux; \
 		--with-libedit \
 		--with-openssl \
 		--with-zlib \
-		$(test "$gnuArch" = 's390x-linux-gnu' && echo '--without-pcre-jit') \
+		--with-pear \
+		--with-freetype \
+ 		--with-jpeg \
+		--with-zip \
+		--enable-gd \
+				$(test "$gnuArch" = 's390x-linux-gnu' && echo '--without-pcre-jit') \
 		--with-libdir="lib/$debMultiarch" \
 		${PHP_EXTRA_CONFIGURE_ARGS:-} \
 	; \
 	make -j "$(nproc)"; \
+	curl https://raw.githubusercontent.com/pear/pearweb_phars/master/install-pear-nozlib.phar > pear/install-pear-nozlib.phar; \
 	find -type f -name '*.a' -delete; \
 	make install; \
 	find /usr/local/bin /usr/local/sbin -type f -executable -exec strip --strip-all '{}' + || true; \
@@ -146,8 +156,6 @@ RUN set -eux; \
 		echo 'listen = 9000'; \
 	} | tee php-fpm.d/zz-docker.conf
 
-RUN rm -rf /var/lib/apt/lists/* /var/cache/apt/*.bin \
-		&& apt-get clean
 
 FROM microdeb/sid
 
@@ -158,7 +166,8 @@ RUN set -eux; \
 COPY --from=builder /usr/local /usr/local
 
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends libargon2-1 libxml2 libsqlite3-0 libcurl4 libonig5 libedit2 libsodium23 \
+	&& apt-get install -y --no-install-recommends libargon2-1 libxml2 libsqlite3-0 libcurl4 libonig5 libedit2 \
+	libsodium23 libzip4 libfreetype6 libjpeg62-turbo libpng16-16 \
 	&& rm -rf /var/lib/apt/lists/* /var/cache/apt/*.bin && apt-get clean
 
 ENTRYPOINT ["docker-php-entrypoint"]
