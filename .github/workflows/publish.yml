@@ -1,8 +1,14 @@
 name: Publish Docker image
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+    - '**.md'
 
 jobs:
   push_to_registry:
@@ -17,7 +23,7 @@ jobs:
         # https://github.com/docker/metadata-action
         uses: docker/metadata-action@v3
         with:
-          images: crccheck/hello-world
+          images: frangal/php8-fpm
 
       - name: Log in to DockerHub
         uses: docker/login-action@v1
