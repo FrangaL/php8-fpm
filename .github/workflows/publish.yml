@@ -15,23 +15,20 @@ jobs:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v2
-
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        # https://github.com/docker/metadata-action
-        uses: docker/metadata-action@v3
-        with:
-          images: frangal/php8-fpm
-
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
           logout: true
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
+      - name: Check out the repo
+        uses: actions/checkout@v2
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        # https://github.com/docker/metadata-action
+        uses: docker/metadata-action@v3
+        with:
+          images: frangal/php8-fpm
       - name: Build and push
         # https://github.com/docker/build-push-action
         uses: docker/build-push-action@v2
