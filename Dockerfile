@@ -157,7 +157,7 @@ RUN set -eux; \
 	} | tee php-fpm.d/zz-docker.conf
 
 
-FROM microdeb/sid
+FROM microdeb/bullseye
 
 RUN set -eux; \
 	mkdir -p /var/www; \
