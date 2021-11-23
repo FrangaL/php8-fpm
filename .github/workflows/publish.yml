@@ -37,5 +37,5 @@ jobs:
           push: true
           #tags: ${{ steps.meta.outputs.tags }}
           tags: |
-            type=semver,enable=true,prefix=,suffix=,pattern=,onlatest=true
+            type=,enable=true,prefix=,suffix=,pattern=,onlatest=true
           labels: ${{ steps.meta.outputs.labels }}
