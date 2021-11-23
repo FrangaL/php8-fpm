@@ -29,13 +29,12 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: frangal/php8-fpm
+          labels: org.opencontainers.image.version=latest          
       - name: Build and push
         # https://github.com/docker/build-push-action
         uses: docker/build-push-action@v2
         with:
           context: .
           push: true
-          #tags: ${{ steps.meta.outputs.tags }}
-          tags: |
-            enable=true,prefix=,suffix=,pattern=,onlatest=true
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
