@@ -28,8 +28,7 @@ jobs:
         # https://github.com/docker/metadata-action
         uses: docker/metadata-action@v3
         with:
-          images: frangal/php8-fpm
-          tags: type=schedule,pattern=nightly      
+          images: frangal/php8-fpm:latest
       - name: Build and push
         # https://github.com/docker/build-push-action
         uses: docker/build-push-action@v2
