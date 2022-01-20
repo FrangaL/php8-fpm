@@ -37,7 +37,7 @@ ENV PHP_CFLAGS="-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_
 ENV PHP_CPPFLAGS="$PHP_CFLAGS"
 ENV PHP_LDFLAGS="-Wl,-O1 -pie"
 
-ENV PHP_VERSION 8.1.0
+ENV PHP_VERSION 8.1.1
 ENV PHP_URL="https://www.php.net/distributions/php-${PHP_VERSION}.tar.xz"
 
 RUN mkdir -p /usr/src; \
